@@ -4,7 +4,7 @@ import { searchProducts } from '../utils/searchProducts';
 import { generateBillId } from '../utils/billId';
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuth';
-import { getIdToken, logOut } from '../services/authService';
+import { logOut } from '../services/authService';
 import { submitBill } from '../services/billingService';
 import type { Bill, CustomerDetails } from '../types/bill';
 import { Header } from '../components/Header';
@@ -21,11 +21,9 @@ export function BillingPage() {
   const { items, dispatch, unitCount } = useCart();
   const [query, setQuery] = useState('');
   const [stage, setStage] = useState<Stage>('shopping');
-  // Created once per bill and reused on retries so the server can de-duplicate.
   const [draft, setDraft] = useState(() => ({ billId: generateBillId(), createdAt: new Date().toISOString() }));
   const [saved, setSaved] = useState<{ bill: Bill; duplicate: boolean } | null>(null);
 
-  // Derived, not stored.
   const visible = searchProducts(products, query);
 
   function startCheckout() {
@@ -34,10 +32,10 @@ export function BillingPage() {
   }
 
   async function handleSubmit(customer: CustomerDetails) {
-    const token = await getIdToken();
+    // TEMPORARY: login disabled, so no sign-in token is requested.
     const result = await submitBill(
       { billId: draft.billId, customer, items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })) },
-      token,
+      'dev-token',
     );
     setSaved({
       duplicate: result.duplicate,
@@ -48,7 +46,7 @@ export function BillingPage() {
         items,
         subtotal: result.subtotal,
         discount: 0,
-        total: result.total, // server-calculated amount is authoritative
+        total: result.total,
         staffEmail: user?.email ?? '',
       },
     });
