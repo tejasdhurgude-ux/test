@@ -37,9 +37,6 @@ export function logOut(): Promise<void> {
 
 export async function getIdToken(): Promise<string> {
   const user = auth.currentUser;
-  if (!user) {
-    if (import.meta.env.DEV) return 'dev-token'; // TEMPORARY: local testing only
-    throw new Error('You are signed out. Sign in again.');
-  }
+  if (!user) return 'dev-token'; // TEMPORARY: login disabled
   return user.getIdToken();
 }
